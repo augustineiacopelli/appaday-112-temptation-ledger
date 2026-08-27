@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Temptation Ledger - AppADay 112</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,500;0,600;1,400&family=Source+Sans+3:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#17140f;
+    --panel:#221e16;
+    --panel-edge:#2c261b;
+    --rule:#382f21;
+    --ink:#e7e0cf;
+    --ink-dim:#b7ae97;
+    --ink-muted:#948c78;
+    --amber:#c99a4a;
+    --amber-soft:#8a6a34;
+    --held:#7fa07f;
+    --held-bg:#28321f;
+    --yielded:#b06a4a;
+    --yielded-bg:#3a241a;
+    --radius:10px;
+    --tap:44px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    min-height:100dvh;
+    display:flex;
+    flex-direction:column;
+    background:var(--bg);
+    background-image:
+      repeating-linear-gradient(180deg, rgba(201,154,74,0.035) 0px, rgba(201,154,74,0.035) 1px, transparent 1px, transparent 34px);
+    color:var(--ink);
+    font-family:'Source Sans 3', sans-serif;
+    -webkit-tap-highlight-color:transparent;
+  }
+  a{color:var(--amber);}
+  header{
+    position:sticky;
+    top:0;
+    z-index:10;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    padding:14px 18px;
+    background:rgba(23,20,15,0.92);
+    backdrop-filter:blur(4px);
+    border-bottom:1px solid var(--rule);
+    flex-wrap:wrap;
+  }
+  .brand{display:flex;align-items:baseline;gap:10px;min-width:0;}
+  .app-num{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:0.85rem;
+    color:var(--amber);
+    letter-spacing:0.05em;
+    flex-shrink:0;
+  }
+  .app-name{
+    font-family:'Spectral', serif;
+    font-weight:600;
+    font-size:1.1rem;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .backlink{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:0.78rem;
+    text-decoration:none;
+    color:var(--ink-muted);
+    border:1px solid var(--rule);
+    padding:8px 12px;
+    border-radius:6px;
+    min-height:var(--tap);
+    display:flex;
+    align-items:center;
+    flex-shrink:0;
+  }
+  .backlink:hover{color:var(--amber);border-color:var(--amber-soft);}
+
+  main{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:22px 16px 40px;
+    gap:26px;
+  }
+
+  .page{
+    width:100%;
+    max-width:520px;
+    display:flex;
+    flex-direction:column;
+    gap:26px;
+  }
+
+  .streak-row{
+    display:flex;
+    align-items:baseline;
+    justify-content:center;
+    gap:10px;
+    padding-bottom:10px;
+    border-bottom:1px solid var(--rule);
+  }
+  .streak-num{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:2.1rem;
+    font-weight:600;
+    color:var(--amber);
+    line-height:1;
+  }
+  .streak-label{
+    font-family:'Spectral', serif;
+    font-style:italic;
+    font-size:0.95rem;
+    color:var(--ink-dim);
+  }
+
+  .ledger-card{
+    background:var(--panel);
+    border:1px solid var(--panel-edge);
+    border-radius:var(--radius);
+    padding:24px 20px;
+    box-shadow:0 10px 30px rgba(0,0,0,0.35);
+  }
+
+  .view{display:none;flex-direction:column;gap:16px;}
+  .view.active{display:flex;}
+
+  h2.view-title{
+    font-family:'Spectral', serif;
+    font-weight:600;
+    font-size:1.15rem;
+    margin:0 0 2px 0;
+    color:var(--ink);
+  }
+  .view-sub{
+    font-family:'Source Sans 3', sans-serif;
+    font-size:0.85rem;
+    color:var(--ink-muted);
+    margin:0;
+  }
+
+  label{
+    display:block;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:0.72rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    color:var(--ink-muted);
+    margin-bottom:6px;
+  }
+  input[type=text], textarea{
+    width:100%;
+    background:#191510;
+    border:1px solid var(--rule);
+    border-radius:6px;
+    color:var(--ink);
+    font-family:'Source Sans 3', sans-serif;
+    font-size:1rem;
+    padding:12px 12px;
+    min-height:var(--tap);
+    resize:vertical;
+  }
+  textarea{min-height:88px;line-height:1.4;}
+  input[type=text]:focus, textarea:focus, button:focus-visible{
+    outline:2px solid var(--amber);
+    outline-offset:2px;
+  }
+  .field{display:flex;flex-direction:column;gap:0;}
+
+  button{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:0.88rem;
+    letter-spacing:0.03em;
+    border-radius:7px;
+    border:1px solid transparent;
+    min-height:var(--tap);
+    padding:10px 16px;
+    cursor:pointer;
+    transition:opacity 0.15s ease, transform 0.05s ease;
+  }
+  button:active{transform:scale(0.98);}
+  button:disabled{opacity:0.4;cursor:not-allowed;}
+
+  .btn-primary{
+    background:var(--amber);
+    color:#1a1610;
+    font-weight:600;
+    border:none;
+  }
+  .btn-primary:hover:not(:disabled){opacity:0.92;}
+
+  .btn-ghost{
+    background:transparent;
+    color:var(--ink-dim);
+    border:1px solid var(--rule);
+  }
+  .btn-ghost:hover:not(:disabled){border-color:var(--amber-soft);color:var(--ink);}
+
+  .btn-yield{
+    background:var(--yielded-bg);
+    color:var(--yielded);
+    border:1px solid var(--yielded);
+  }
+  .btn-hold{
+    background:var(--held-bg);
+    color:var(--held);
+    border:1px solid var(--held);
+  }
+
+  /* pause view */
+  .pause-ring-wrap{
+    display:flex;
+    justify-content:center;
+    padding:6px 0 2px;
+  }
+  .pause-ring{width:150px;height:150px;}
+  .pause-ring circle{
+    fill:none;
+    stroke-width:6;
+  }
+  .ring-track{stroke:var(--rule);}
+  .ring-progress{
+    stroke:var(--amber);
+    stroke-linecap:round;
+    transform:rotate(-90deg);
+    transform-origin:50% 50%;
+  }
+  .ring-time{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:1.5rem;
+    font-weight:600;
+    fill:var(--ink);
+  }
+  .pause-trigger{
+    text-align:center;
+    font-family:'Spectral', serif;
+    font-weight:600;
+    font-size:1.05rem;
+  }
+  .pause-reason{
+    text-align:center;
+    font-family:'Spectral', serif;
+    font-style:italic;
+    color:var(--ink-dim);
+    font-size:0.92rem;
+    line-height:1.5;
+    padding:0 6px;
+  }
+  .pause-actions{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+  }
+  .pause-actions button{flex:1;min-width:130px;}
+  .pause-hint{
+    text-align:center;
+    font-size:0.78rem;
+    color:var(--ink-muted);
+    font-family:'IBM Plex Mono', monospace;
+  }
+
+  /* resolved view */
+  .resolved-view{align-items:center;text-align:center;padding:10px 0;}
+  .resolved-tag{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:0.78rem;
+    letter-spacing:0.05em;
+    text-transform:uppercase;
+    padding:6px 14px;
+    border-radius:20px;
+  }
+  .resolved-msg{
+    font-family:'Spectral', serif;
+    font-size:1.05rem;
+    color:var(--ink-dim);
+  }
+
+  /* insights */
+  .insights-body{
+    display:flex;
+    flex-direction:column;
+  }
+  .insights-empty{
+    padding:16px 4px;
+    font-family:'Spectral', serif;
+    font-style:italic;
+    color:var(--ink-muted);
+    text-align:center;
+    font-size:0.92rem;
+    border-top:1px solid var(--rule);
+  }
+  .insight-panel{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    padding:16px 2px;
+    border-top:1px solid var(--rule);
+  }
+  .insight-title{
+    font-family:'Spectral', serif;
+    font-weight:600;
+    font-size:0.95rem;
+    margin:0;
+  }
+  .insight-sub{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:0.72rem;
+    color:var(--ink-muted);
+    margin:0;
+  }
+
+  .ratio-bar{
+    display:flex;
+    height:32px;
+    border-radius:6px;
+    overflow:hidden;
+    background:var(--rule);
+  }
+  .ratio-seg-held{background:var(--held);}
+  .ratio-seg-yielded{background:var(--yielded);}
+  .ratio-caption{
+    display:flex;
+    justify-content:space-between;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:0.72rem;
+    color:var(--ink-muted);
+  }
+  .ratio-caption .cap-held{color:var(--held);}
+  .ratio-caption .cap-yielded{color:var(--yielded);}
+
+  .trigger-row{display:flex;flex-direction:column;gap:5px;}
+  .trigger-row + .trigger-row{margin-top:10px;}
+  .trigger-row-head{
+    display:flex;
+    justify-content:space-between;
+    gap:8px;
+    font-family:'Source Sans 3', sans-serif;
+    font-size:0.85rem;
+  }
+  .trigger-row-head .trigger-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .trigger-row-head .trigger-count{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:0.72rem;
+    color:var(--ink-muted);
+    flex-shrink:0;
+  }
+  .trigger-bar-track{
+    height:8px;
+    border-radius:4px;
+    background:var(--rule);
+    overflow:hidden;
+    display:flex;
+  }
+  .trigger-bar-held{height:100%;background:var(--held);}
+  .trigger-bar-yielded{height:100%;background:var(--yielded);}
+
+  .chart-svg{width:100%;height:auto;display:block;}
+  .chart-track{fill:var(--rule);}
+  .chart-held{fill:var(--held);}
+  .chart-yielded{fill:var(--yielded);}
+  .chart-axis-label{fill:var(--ink-muted);font-family:'IBM Plex Mono', monospace;font-size:9px;}
+
+  /* history */
+  .history-head{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+  }
+  .history-head h3{
+    font-family:'Spectral', serif;
+    font-size:1rem;
+    margin:0;
+    color:var(--ink);
+  }
+  .history-count{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:0.75rem;
+    color:var(--ink-muted);
+  }
+  .history-list{
+    display:flex;
+    flex-direction:column;
+    max-height:42vh;
+    overflow-y:auto;
+    border-top:1px solid var(--rule);
+  }
+  .history-empty{
+    padding:18px 4px;
+    font-family:'Spectral', serif;
+    font-style:italic;
+    color:var(--ink-muted);
+    text-align:center;
+    font-size:0.92rem;
+  }
+  .history-row{
+    display:grid;
+    grid-template-columns:1fr auto;
+    gap:4px 10px;
+    padding:12px 4px;
+    border-bottom:1px solid var(--rule);
+  }
+  .history-when{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:0.72rem;
+    color:var(--ink-muted);
+    grid-column:1 / 2;
+  }
+  .history-tag{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:0.68rem;
+    letter-spacing:0.05em;
+    text-transform:uppercase;
+    padding:2px 9px;
+    border-radius:12px;
+    height:fit-content;
+    grid-column:2 / 3;
+    grid-row:1 / 3;
+    align-self:start;
+  }
+  .tag-held{background:var(--held-bg);color:var(--held);}
+  .tag-yielded{background:var(--yielded-bg);color:var(--yielded);}
+  .history-trigger{
+    font-family:'Source Sans 3', sans-serif;
+    font-weight:600;
+    font-size:0.92rem;
+    grid-column:1 / 2;
+  }
+  .history-reason{
+    font-family:'Spectral', serif;
+    font-style:italic;
+    font-size:0.85rem;
+    color:var(--ink-dim);
+    grid-column:1 / 2;
+  }
+
+  footer{
+    padding:18px 16px 28px;
+    text-align:center;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:0.75rem;
+    color:var(--ink-muted);
+  }
+  footer a{color:var(--ink-muted);text-decoration:underline;}
+  footer a:hover{color:var(--amber);}
+
+  @media (prefers-reduced-motion: reduce){
+    button, .ring-progress{transition:none;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <span class="app-num">112</span>
+    <span class="app-name">Temptation Ledger</span>
+  </div>
+  <a class="backlink" href="https://augustineiacopelli.github.io/appaday/">&larr; All Apps</a>
+</header>
+
+<main>
+  <div class="page">
+
+    <div class="streak-row">
+      <span class="streak-num" id="streakNum">0</span>
+      <span class="streak-label" id="streakLabel">held in a row</span>
+    </div>
+
+    <div class="ledger-card">
+
+      <!-- ENTRY VIEW -->
+      <div class="view active" id="view-entry">
+        <h2 class="view-title">Log the moment</h2>
+        <p class="view-sub">Name what's pulling at you before you decide anything.</p>
+        <div class="field">
+          <label for="inputTrigger">Site or trigger</label>
+          <input type="text" id="inputTrigger" maxlength="80" placeholder="e.g. late-night scrolling, a second drink, the vending machine">
+        </div>
+        <div class="field">
+          <label for="inputReason">Reason</label>
+          <textarea id="inputReason" maxlength="400" placeholder="Why does it feel pressing right now?"></textarea>
+        </div>
+        <button class="btn-primary" id="btnBeginPause" type="button">Begin the sixty-second pause</button>
+      </div>
+
+      <!-- PAUSE VIEW -->
+      <div class="view" id="view-pause">
+        <h2 class="view-title">Hold here a moment</h2>
+        <div class="pause-ring-wrap">
+          <svg class="pause-ring" viewBox="0 0 140 140">
+            <circle class="ring-track" cx="70" cy="70" r="58"></circle>
+            <circle class="ring-progress" id="ringProgress" cx="70" cy="70" r="58" stroke-dasharray="364.4"></circle>
+            <text class="ring-time" id="ringTime" x="70" y="76" text-anchor="middle">0:60</text>
+          </svg>
+        </div>
+        <p class="pause-trigger" id="pauseTrigger"></p>
+        <p class="pause-reason" id="pauseReason"></p>
+        <div class="pause-actions">
+          <button class="btn-hold" id="btnHold" type="button" disabled>Close and hold</button>
+          <button class="btn-yield" id="btnYield" type="button" disabled>Proceed anyway</button>
+        </div>
+        <p class="pause-hint" id="pauseHint">Both choices unlock when the ring empties.</p>
+      </div>
+
+      <!-- RESOLVED VIEW -->
+      <div class="view resolved-view" id="view-resolved">
+        <span class="resolved-tag" id="resolvedTag"></span>
+        <p class="resolved-msg" id="resolvedMsg"></p>
+      </div>
+
+    </div>
+
+    <div>
+      <div class="history-head">
+        <h3>Insights</h3>
+        <span class="history-count" id="insightsCount">0 entries</span>
+      </div>
+      <div class="insights-body" id="insightsBody"></div>
+    </div>
+
+    <div>
+      <div class="history-head">
+        <h3>History</h3>
+        <span class="history-count" id="historyCount">0 entries</span>
+      </div>
+      <div class="history-list" id="historyList"></div>
+    </div>
+
+  </div>
+</main>
+
+<footer>
+  AppADay 112 &middot; <a href="https://augustineiacopelli.github.io/appaday/">augustineiacopelli.github.io/appaday</a>
+</footer>
+
+<script>
+(function(){
+  "use strict";
+
+  var STORAGE_KEY = "appaday-112-temptation-ledger";
+  var PAUSE_MS = 60000;
+  var RING_CIRCUMFERENCE = 2 * Math.PI * 58;
+
+  var els = {
+    streakNum: document.getElementById("streakNum"),
+    streakLabel: document.getElementById("streakLabel"),
+    viewEntry: document.getElementById("view-entry"),
+    viewPause: document.getElementById("view-pause"),
+    viewResolved: document.getElementById("view-resolved"),
+    inputTrigger: document.getElementById("inputTrigger"),
+    inputReason: document.getElementById("inputReason"),
+    btnBeginPause: document.getElementById("btnBeginPause"),
+    pauseTrigger: document.getElementById("pauseTrigger"),
+    pauseReason: document.getElementById("pauseReason"),
+    ringProgress: document.getElementById("ringProgress"),
+    ringTime: document.getElementById("ringTime"),
+    btnHold: document.getElementById("btnHold"),
+    btnYield: document.getElementById("btnYield"),
+    pauseHint: document.getElementById("pauseHint"),
+    resolvedTag: document.getElementById("resolvedTag"),
+    resolvedMsg: document.getElementById("resolvedMsg"),
+    historyList: document.getElementById("historyList"),
+    historyCount: document.getElementById("historyCount"),
+    insightsBody: document.getElementById("insightsBody"),
+    insightsCount: document.getElementById("insightsCount")
+  };
+
+  var pending = null;      // { trigger, reason }
+  var pauseEndAt = null;
+  var pauseTimerId = null;
+  var resolvedTimerId = null;
+
+  function loadHistory(){
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return [];
+      var parsed = JSON.parse(raw);
+      if (!Array.isArray(parsed)) return [];
+      return parsed;
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function saveHistory(history){
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
+    } catch (e) {
+      // storage unavailable or full; fail silently, in-memory state still works this session
+    }
+  }
+
+  function computeStreak(history){
+    var count = 0;
+    for (var i = 0; i < history.length; i++){
+      if (history[i].outcome === "held") { count++; }
+      else { break; }
+    }
+    return count;
+  }
+
+  function formatWhen(ts){
+    var d = new Date(ts);
+    var months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    var h = d.getHours();
+    var ampm = h >= 12 ? "PM" : "AM";
+    var h12 = h % 12; if (h12 === 0) h12 = 12;
+    var min = d.getMinutes() < 10 ? "0" + d.getMinutes() : d.getMinutes();
+    return months[d.getMonth()] + " " + d.getDate() + ", " + h12 + ":" + min + " " + ampm;
+  }
+
+  function truncate(str, max){
+    if (!str) return "";
+    if (str.length <= max) return str;
+    return str.slice(0, max - 1).trim() + "\u2026";
+  }
+
+  function escapeHtml(str){
+    var div = document.createElement("div");
+    div.textContent = str == null ? "" : str;
+    return div.innerHTML;
+  }
+
+  function renderStreak(history){
+    var n = computeStreak(history);
+    els.streakNum.textContent = n;
+    els.streakLabel.textContent = n === 1 ? "held in a row" : "held in a row";
+  }
+
+  function renderHistory(history){
+    els.historyCount.textContent = history.length + (history.length === 1 ? " entry" : " entries");
+    if (history.length === 0){
+      els.historyList.innerHTML = '<div class="history-empty">Nothing logged yet. The first entry starts the ledger.</div>';
+      return;
+    }
+    var html = "";
+    for (var i = 0; i < history.length; i++){
+      var entry = history[i];
+      var tagClass = entry.outcome === "held" ? "tag-held" : "tag-yielded";
+      var tagLabel = entry.outcome === "held" ? "held" : "yielded";
+      html += '<div class="history-row">' +
+        '<span class="history-when">' + escapeHtml(formatWhen(entry.resolvedAt || entry.createdAt)) + '</span>' +
+        '<span class="history-tag ' + tagClass + '">' + tagLabel + '</span>' +
+        '<span class="history-trigger">' + escapeHtml(entry.trigger) + '</span>' +
+        '<span class="history-reason">' + escapeHtml(truncate(entry.reason, 90)) + '</span>' +
+        '</div>';
+    }
+    els.historyList.innerHTML = html;
+  }
+
+  var DAY_MS = 86400000;
+  var TIME_BUCKETS = [
+    { label: "12a-4a", start: 0, end: 4 },
+    { label: "4a-8a", start: 4, end: 8 },
+    { label: "8a-12p", start: 8, end: 12 },
+    { label: "12p-4p", start: 12, end: 16 },
+    { label: "4p-8p", start: 16, end: 20 },
+    { label: "8p-12a", start: 20, end: 24 }
+  ];
+
+  function panelWrap(title, sub, bodyHtml){
+    return '<div class="insight-panel">' +
+      '<h4 class="insight-title">' + escapeHtml(title) + '</h4>' +
+      '<p class="insight-sub">' + escapeHtml(sub) + '</p>' +
+      bodyHtml +
+      '</div>';
+  }
+
+  function buildRatioPanel(history){
+    var held = 0, yielded = 0;
+    history.forEach(function(e){ if (e.outcome === "held") held++; else yielded++; });
+    var total = held + yielded;
+    var heldPct = total ? Math.round((held / total) * 100) : 0;
+    var yieldPct = total ? 100 - heldPct : 0;
+    var body =
+      '<div class="ratio-bar">' +
+        (held ? '<div class="ratio-seg-held" style="flex:' + held + ' 0 0"></div>' : '') +
+        (yielded ? '<div class="ratio-seg-yielded" style="flex:' + yielded + ' 0 0"></div>' : '') +
+      '</div>' +
+      '<div class="ratio-caption">' +
+        '<span class="cap-held">' + held + ' held (' + heldPct + '%)</span>' +
+        '<span class="cap-yielded">' + yielded + ' yielded (' + yieldPct + '%)</span>' +
+      '</div>';
+    return panelWrap("Held vs. yielded", "Every resolved entry, all time", body);
+  }
+
+  function buildDailyTrendPanel(history){
+    var todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    var days = [];
+    for (var i = 13; i >= 0; i--){
+      days.push({ time: todayStart.getTime() - i * DAY_MS, held: 0, yielded: 0 });
+    }
+    history.forEach(function(e){
+      var ts = e.resolvedAt || e.createdAt;
+      var d = new Date(ts);
+      d.setHours(0, 0, 0, 0);
+      var dayTime = d.getTime();
+      for (var j = 0; j < days.length; j++){
+        if (days[j].time === dayTime){
+          if (e.outcome === "held") days[j].held++; else days[j].yielded++;
+          break;
+        }
+      }
+    });
+    var max = 1;
+    days.forEach(function(d){ max = Math.max(max, d.held + d.yielded); });
+
+    var w = 400, h = 110, axisH = 16, gap = 4;
+    var barW = (w / days.length) - gap;
+    var bars = "";
+    days.forEach(function(d, idx){
+      var x = idx * (barW + gap);
+      var heldH = (d.held / max) * h;
+      var yieldH = (d.yielded / max) * h;
+      var yHeld = h - heldH;
+      var yYield = yHeld - yieldH;
+      bars += '<rect class="chart-track" x="' + x.toFixed(1) + '" y="0" width="' + barW.toFixed(1) + '" height="' + h + '"></rect>';
+      if (d.held > 0) bars += '<rect class="chart-held" x="' + x.toFixed(1) + '" y="' + yHeld.toFixed(1) + '" width="' + barW.toFixed(1) + '" height="' + heldH.toFixed(1) + '"></rect>';
+      if (d.yielded > 0) bars += '<rect class="chart-yielded" x="' + x.toFixed(1) + '" y="' + yYield.toFixed(1) + '" width="' + barW.toFixed(1) + '" height="' + yieldH.toFixed(1) + '"></rect>';
+      if (idx === 0 || idx === days.length - 1 || idx === Math.floor(days.length / 2)){
+        var dLabel = new Date(d.time);
+        var lbl = (dLabel.getMonth() + 1) + "/" + dLabel.getDate();
+        bars += '<text class="chart-axis-label" x="' + (x + barW / 2).toFixed(1) + '" y="' + (h + 12) + '" text-anchor="middle">' + lbl + '</text>';
+      }
+    });
+    var svg = '<svg class="chart-svg" viewBox="0 0 ' + w + ' ' + (h + axisH) + '" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Held and yielded counts for the last 14 days">' + bars + '</svg>';
+    return panelWrap("Last 14 days", "Held (light) stacked over yielded (dark) per day", svg);
+  }
+
+  function buildTriggerPanel(history){
+    var map = {};
+    var order = [];
+    history.forEach(function(e){
+      var key = (e.trigger || "").trim().toLowerCase();
+      if (!key) key = "(unnamed)";
+      if (!map[key]){
+        map[key] = { label: (e.trigger || "(unnamed)").trim(), held: 0, yielded: 0 };
+        order.push(key);
+      }
+      if (e.outcome === "held") map[key].held++; else map[key].yielded++;
+    });
+    var rows = order.map(function(k){ return map[k]; });
+    rows.sort(function(a, b){ return (b.held + b.yielded) - (a.held + a.yielded); });
+    rows = rows.slice(0, 6);
+    if (rows.length === 0) return "";
+    var max = 1;
+    rows.forEach(function(r){ max = Math.max(max, r.held + r.yielded); });
+
+    var body = rows.map(function(r){
+      var total = r.held + r.yielded;
+      var heldPct = (r.held / max) * 100;
+      var yieldPct = (r.yielded / max) * 100;
+      return '<div class="trigger-row">' +
+        '<div class="trigger-row-head">' +
+          '<span class="trigger-name">' + escapeHtml(truncate(r.label, 30)) + '</span>' +
+          '<span class="trigger-count">' + total + (total === 1 ? " time" : " times") + '</span>' +
+        '</div>' +
+        '<div class="trigger-bar-track">' +
+          (r.held ? '<div class="trigger-bar-held" style="width:' + heldPct.toFixed(1) + '%"></div>' : '') +
+          (r.yielded ? '<div class="trigger-bar-yielded" style="width:' + yieldPct.toFixed(1) + '%"></div>' : '') +
+        '</div>' +
+      '</div>';
+    }).join("");
+
+    return panelWrap("By trigger or site", "Top " + rows.length + ", most logged first", body);
+  }
+
+  function buildTimeOfDayPanel(history){
+    var buckets = TIME_BUCKETS.map(function(b){ return { label: b.label, start: b.start, end: b.end, held: 0, yielded: 0 }; });
+    history.forEach(function(e){
+      var ts = e.resolvedAt || e.createdAt;
+      var hour = new Date(ts).getHours();
+      for (var i = 0; i < buckets.length; i++){
+        if (hour >= buckets[i].start && hour < buckets[i].end){
+          if (e.outcome === "held") buckets[i].held++; else buckets[i].yielded++;
+          break;
+        }
+      }
+    });
+    var max = 1;
+    buckets.forEach(function(b){ max = Math.max(max, b.held + b.yielded); });
+
+    var w = 400, h = 110, axisH = 16, gap = 8;
+    var barW = (w / buckets.length) - gap;
+    var bars = "";
+    buckets.forEach(function(b, idx){
+      var x = idx * (barW + gap);
+      var heldH = (b.held / max) * h;
+      var yieldH = (b.yielded / max) * h;
+      var yHeld = h - heldH;
+      var yYield = yHeld - yieldH;
+      bars += '<rect class="chart-track" x="' + x.toFixed(1) + '" y="0" width="' + barW.toFixed(1) + '" height="' + h + '"></rect>';
+      if (b.held > 0) bars += '<rect class="chart-held" x="' + x.toFixed(1) + '" y="' + yHeld.toFixed(1) + '" width="' + barW.toFixed(1) + '" height="' + heldH.toFixed(1) + '"></rect>';
+      if (b.yielded > 0) bars += '<rect class="chart-yielded" x="' + x.toFixed(1) + '" y="' + yYield.toFixed(1) + '" width="' + barW.toFixed(1) + '" height="' + yieldH.toFixed(1) + '"></rect>';
+      bars += '<text class="chart-axis-label" x="' + (x + barW / 2).toFixed(1) + '" y="' + (h + 12) + '" text-anchor="middle">' + b.label + '</text>';
+    });
+    var svg = '<svg class="chart-svg" viewBox="0 0 ' + w + ' ' + (h + axisH) + '" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Temptations logged by time of day">' + bars + '</svg>';
+    return panelWrap("Time of day", "When entries tend to get logged", svg);
+  }
+
+  function renderInsights(history){
+    els.insightsCount.textContent = history.length + (history.length === 1 ? " entry" : " entries");
+    if (history.length === 0){
+      els.insightsBody.innerHTML = '<div class="insights-empty">Patterns will show up here once you have logged a few moments.</div>';
+      return;
+    }
+    var panels = [
+      buildRatioPanel(history),
+      buildDailyTrendPanel(history),
+      buildTriggerPanel(history),
+      buildTimeOfDayPanel(history)
+    ].filter(Boolean);
+    els.insightsBody.innerHTML = panels.join("");
+  }
+
+  function renderAll(){
+    var history = loadHistory();
+    renderStreak(history);
+    renderInsights(history);
+    renderHistory(history);
+  }
+
+  function showView(name){
+    els.viewEntry.classList.toggle("active", name === "entry");
+    els.viewPause.classList.toggle("active", name === "pause");
+    els.viewResolved.classList.toggle("active", name === "resolved");
+  }
+
+  function resetToEntry(){
+    pending = null;
+    pauseEndAt = null;
+    if (pauseTimerId){ clearInterval(pauseTimerId); pauseTimerId = null; }
+    els.inputTrigger.value = "";
+    els.inputReason.value = "";
+    showView("entry");
+  }
+
+  function beginPause(){
+    var trigger = els.inputTrigger.value.trim();
+    var reason = els.inputReason.value.trim();
+    if (!trigger){
+      els.inputTrigger.focus();
+      return;
+    }
+    pending = { trigger: trigger, reason: reason };
+    els.pauseTrigger.textContent = trigger;
+    els.pauseReason.textContent = reason ? '"' + reason + '"' : "No reason noted.";
+    pauseEndAt = Date.now() + PAUSE_MS;
+    els.btnHold.disabled = true;
+    els.btnYield.disabled = true;
+    els.pauseHint.textContent = "Both choices unlock when the ring empties.";
+    showView("pause");
+    tickPause();
+    if (pauseTimerId) clearInterval(pauseTimerId);
+    pauseTimerId = setInterval(tickPause, 250);
+  }
+
+  function tickPause(){
+    var remaining = Math.max(0, pauseEndAt - Date.now());
+    var secondsLeft = Math.ceil(remaining / 1000);
+    var elapsedRatio = 1 - (remaining / PAUSE_MS);
+    els.ringProgress.setAttribute("stroke-dashoffset", (RING_CIRCUMFERENCE * elapsedRatio).toFixed(1));
+    els.ringTime.textContent = "0:" + (secondsLeft < 10 ? "0" + secondsLeft : secondsLeft);
+
+    if (remaining <= 0){
+      clearInterval(pauseTimerId);
+      pauseTimerId = null;
+      els.btnHold.disabled = false;
+      els.btnYield.disabled = false;
+      els.pauseHint.textContent = "The pause is over. What actually happens next?";
+      els.ringTime.textContent = "0:00";
+    }
+  }
+
+  function resolveEntry(outcome){
+    if (!pending) return;
+    var history = loadHistory();
+    var entry = {
+      id: Date.now() + "-" + Math.floor(Math.random() * 10000),
+      trigger: pending.trigger,
+      reason: pending.reason,
+      createdAt: pauseEndAt - PAUSE_MS,
+      resolvedAt: Date.now(),
+      outcome: outcome
+    };
+    history.unshift(entry);
+    saveHistory(history);
+    renderAll();
+
+    els.resolvedTag.textContent = outcome === "held" ? "Held" : "Yielded";
+    els.resolvedTag.className = "resolved-tag " + (outcome === "held" ? "tag-held" : "tag-yielded");
+    els.resolvedMsg.textContent = outcome === "held"
+      ? "Logged. The moment passed and you stayed put."
+      : "Logged. No judgment here, just an honest entry.";
+    showView("resolved");
+
+    if (resolvedTimerId) clearTimeout(resolvedTimerId);
+    resolvedTimerId = setTimeout(function(){
+      resolvedTimerId = null;
+      resetToEntry();
+    }, 1600);
+  }
+
+  els.btnBeginPause.addEventListener("click", beginPause);
+  els.btnHold.addEventListener("click", function(){ resolveEntry("held"); });
+  els.btnYield.addEventListener("click", function(){ resolveEntry("yielded"); });
+  els.inputTrigger.addEventListener("keydown", function(e){
+    if (e.key === "Enter"){ beginPause(); }
+  });
+
+  renderAll();
+})();
+</script>
+
+</body>
+</html>
